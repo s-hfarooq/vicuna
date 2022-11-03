@@ -11,7 +11,8 @@ package vproc_pkg;
 typedef enum {
     VREG_GENERIC     = 0,
     VREG_XLNX_RAM32M = 1,
-    VREG_ASIC        = 2
+    VREG_ASIC        = 2,
+    VREG_ARM_SRAM    = 3
 } vreg_type;
 
 parameter int unsigned VLSU_FLAGS_W = 1;

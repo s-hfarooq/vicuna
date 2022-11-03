@@ -169,6 +169,22 @@ module vproc_vregfile #(
                     end
                 end
 
+                vproc_pkg::VREG_ARM_SRAM: begin
+                    for (genvar gr = 0; gr < PORT_RD_CNT_TOTAL; gr++) begin
+                        sram_512word_32bit_wmask_8partition arm_regfile(
+                            .Q(sram_d_out),
+                            .CLK(clk),
+                            .CEN(sram_chip_en),
+                            .WEN(sram_byte_en),
+                            .GWEN(sram_wr_en),
+                            .A(sram_addr),
+                            .D(sram_d_in),
+                            .EMA(sram_ema),
+                            .RETN(sram_retn)
+                        )
+                    end
+                end
+
                 default: ;
 
             endcase
