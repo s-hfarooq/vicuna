@@ -139,9 +139,9 @@ module vproc_tb #(
         parameter int unsigned MEM_SZ          = 262144,
         parameter int unsigned MEM_LATENCY     = 1,
         parameter int unsigned VMEM_W          = 32,
-        parameter int unsigned ICACHE_SZ       = 0,   // instruction cache size in bytes
+        parameter int unsigned ICACHE_SZ       = 8192,   // instruction cache size in bytes
         parameter int unsigned ICACHE_LINE_W   = 128, // instruction cache line width in bits
-        parameter int unsigned DCACHE_SZ       = 0,   // data cache size in bytes
+        parameter int unsigned DCACHE_SZ       = 65536,   // data cache size in bytes
         parameter int unsigned DCACHE_LINE_W   = 512  // data cache line width in bits
     );
 
@@ -161,9 +161,6 @@ module vproc_tb #(
     logic        mem_rvalid;
     logic        mem_err;
     logic [31:0] mem_rdata;
-
-    logic [31:0] tmp_addr;
-    logic [31:0] tmp_addr2;
 
     // Programming/debug set pins
     logic set_programming_mode;
@@ -207,9 +204,9 @@ module vproc_tb #(
         .mem_we_o      ( mem_we                      ),
         .mem_be_o      ( mem_be                      ),
         .mem_wdata_o   ( mem_wdata                   ),
-        .mem_rvalid_i  ( send_to_ibex                ),
-        .mem_err_i     ( mem_err                     ),
-        .mem_rdata_i   ( ibex_d_in                   ),
+        .mem_rvalid_i  ( mmu_out_valid                ),
+        .mem_err_i     ( vproc_mem_err_i                     ),
+        .mem_rdata_i   ( mmu_data_out                   ),
         .pend_vreg_wr_map_o (                        )
     );
     wire [9:0] gpio_pins;
@@ -334,6 +331,13 @@ module vproc_tb #(
     logic [31:0] mem_val;
     logic [31:0] prev_addr;
     logic mem_tmp_data_out_valid;
+
+    // initial begin
+    //     #20000
+    //     $error("Didnt finish after 20000");
+    //     $finish;
+    // end
+
     initial begin
 	$display("STARTING TB");
         done = 1'b0;
@@ -343,6 +347,8 @@ module vproc_tb #(
         set_valid = 1'b0;
         mem_tmp_data_out_valid = 1'b0;
         mmu_tmp_data_out_valid = 1'b0;
+        mmu_tmp_data_out = 32'b0;
+        mem_tmp_data_out = 32'b0;
         ibex_d_in_valid = 1'b0;
         send_to_ibex = 1'b0;
 
@@ -397,63 +403,86 @@ module vproc_tb #(
             // wait for completion (i.e. request of instr mem addr 0x00000000)
             //@(posedge prog_end);
 	    $display("STARTING WHILE LOOP");
+        // $dumpfile("top.vcd");
             while (1) begin
                 @(posedge clk);
+                // $dumpvars(0, vproc_tb);
 
-                // if(mem_req_tmp == 1'b1) begin
+                // if(mem_req_tmp == 1'b1 && mem_req == 1'b0) begin
+                //     $display("setting addr");
                 //     mem_addr = addr_tmp; //- 32'h0000_2000;
                 //     mem_req = 1'b1;
+                //     @(posedge clk)
+                //     mem_req = 1'b0;
+                // end else begin
+                //     // $display("other");
+                //     if(mem_rvalid == 1'b1 && mem_tmp_data_out_valid == 1'b0) begin
+                //         mem_tmp_data_out = mem_rdata;
+                //         $display("INFO: mem_tmp_data_out=%x, mem_rdata=%x, mem_addr=%x", mem_tmp_data_out, mem_rdata, mem_addr);
+
+                //         mem_tmp_data_out_valid = 1'b1;
+                //     end
+
+                //     if(mmu_out_valid == 1'b1) begin
+                //         // @(posedge clk)
+                //         mmu_tmp_data_out = mmu_data_out;
+                //         mmu_tmp_data_out_valid = 1'b1;
+                //         // $display("mmu curr_addr = %x", mmu.curr_addr);
+                //         $display("INFO: mmu_tmp_data_out=%x, mmu_data_out=%x, mem_addr=%x", mmu_tmp_data_out, mmu_data_out, mem_addr);
+
+                //     end
+
+                //     // if(ibex_d_in_valid == 1'b1) begin
+                //     //     @(posedge clk)
+                //     //     mmu_tmp_data_out_valid = 1'b0;
+                //     //     mem_tmp_data_out_valid = 1'b0;
+                //     //     ibex_d_in_valid = 1'b0;
+                //     // end
+
+                //     if(mmu_tmp_data_out_valid == 1'b1 && mem_tmp_data_out_valid == 1'b1) begin
+                //         $display("INFO: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
+                //         assert(mem_tmp_data_out == mmu_tmp_data_out) else $error("ERROR: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
+                //         mmu_tmp_data_out_valid = 1'b0;
+                //         mem_tmp_data_out_valid = 1'b0;
+                //         ibex_d_in = mem_tmp_data_out;
+                //         ibex_d_in_valid = 1'b1;
+                //         @(posedge clk)
+                //         mem_req = 1'b0;
+                //     end
                 // end
 
                 
-                // if(mem_rvalid == 1'b1 && mem_tmp_data_out_valid == 1'b0) begin
-                //     mem_tmp_data_out = mem_rdata;
-                //     $display("INFO: mem_tmp_data_out=%x, mem_rdata=%x, mem_addr=%x", mem_tmp_data_out, mem_rdata, mem_addr);
-
-                //     mem_tmp_data_out_valid = 1'b1;
-                // end
-
-                // if(mmu_out_valid == 1'b1) begin
-                //     @(posedge clk)
-                //     mmu_tmp_data_out = mmu_data_out;
-                //     mmu_tmp_data_out_valid = 1'b1;
-                //     $display("mmu curr_addr = %x", mmu.curr_addr);
-                //     $display("INFO: mmu_tmp_data_out=%x, mmu_data_out=%x, mem_addr=%x", mmu_tmp_data_out, mmu_data_out, mem_addr);
-
-                // end
-
-                // if(ibex_d_in_valid == 1'b1) begin
-                //     @(posedge clk)
-                //     mmu_tmp_data_out_valid = 1'b0;
-                //     mem_tmp_data_out_valid = 1'b0;
-                //     ibex_d_in_valid = 1'b0;
-                // end
-
-                // if(mmu_tmp_data_out_valid == 1'b1 && mem_tmp_data_out_valid == 1'b1) begin
-                //     $display("INFO: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
-                //     assert(mem_tmp_data_out == mmu_tmp_data_out) else $error("ERROR: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
-                //     // mmu_tmp_data_out_valid = 1'b0;
-                //     // mem_tmp_data_out_valid = 1'b0;
-                //     ibex_d_in = mem_tmp_data_out;
-                //     ibex_d_in_valid = 1'b1;
-                //     mem_req = 1'b0;
-                // end
 
                 if(mem_req_tmp == 1'b1) begin
-                    mem_addr = addr_tmp; //- 32'h0000_2000;
-                    mem_req = mem_req_tmp;
-                    @(posedge clk)
-                    mem_req = 1'b0;
-                    @(posedge mmu_out_valid)
-                    ibex_d_in_valid = mmu_out_valid;
-                    ibex_d_in = mmu_data_out;
-                    send_to_ibex = 1'b1;
-                    $display("mmu curr_addr = %x", mmu.curr_addr);
-                    $display("INFO: mmu_data_out=%x, correct_val=%x, mem_addr=%x", mmu_data_out, mem[mem_addr[$clog2(MEM_SZ)-1 : $clog2(MEM_W/8)]], mem_addr);
+                    $display("req_tmp HIGH");
+                    if(mem_we) begin
+                        $display("MEM_WE HIGH");
+                        for (int i = 0; i < MEM_W/8; i++) begin
+                            if (mem_be[i]) begin
+                                mem[mem_idx][i*8 +: 8] <= mem_wdata[i*8 +: 8];
+                            end
+                        end
+                    end else begin
+                        mem_addr = addr_tmp; //- 32'h0000_2000;
+                        mem_req = mem_req_tmp;
+                        // $display("1 mem_rdata=%x", mem_rdata);
+                        @(posedge clk)
+                        // $display("2 mem_rdata=%x", mem_rdata);
+                        // assert(mem_rdata == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mem_rdata=%x, mem[]=%x, mem_idx=%x", mem_addr, mem_rdata, mem[mem_idx], mem_idx);
+                        mem_req = 1'b0;
+                        @(posedge mmu_out_valid)
+                        // $display("3 mem_rdata=%x", mem_rdata);
+                        ibex_d_in_valid = mmu_out_valid;
+                        ibex_d_in = mmu_data_out;
+                        send_to_ibex = 1'b1;
+                        // $display("mmu curr_addr = %x", mmu.curr_addr);
+                        $display("INFO: mmu_data_out=%x, correct_val=%x, mem_addr=%x, idx=%x, time=%p", mmu_data_out, mem[mem_idx], mem_addr, mem_idx, $time);
 
-                    assert(mmu_data_out == mem[mem_addr[$clog2(MEM_SZ)-1 : $clog2(MEM_W/8)]]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mmu_data_out=%x, mem[]=%x", mem_addr, mmu_data_out, mem[mem_addr[$clog2(MEM_SZ)-1 : $clog2(MEM_W/8)]]);
-                    @(posedge clk)
-                    send_to_ibex = 1'b0;
+                        assert(mmu_data_out == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mmu_data_out=%x, mem[]=%x", mem_addr, mmu_data_out, mem[mem_idx]);
+                        @(posedge clk)
+                        // $display("4 mem_rdata=%x", mem_rdata);
+                        send_to_ibex = 1'b0;
+                    end
                 end
 
 
@@ -479,4 +508,14 @@ module vproc_tb #(
 	$finish;
     end
 
+    initial begin
+        #1
+        $dumpfile("top.vcd");
+        $dumpvars(0, vproc_tb);
+
+        // while(1) begin
+        //     #1
+        // end
+
+    end
 endmodule
