@@ -2,132 +2,6 @@
 // // Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for details
 // // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
 
-
-// // `timescale 10us/100ns
-// module vproc_tb #(
-//         parameter              PROG_PATHS_LIST = "/home/hfaroo9/498-integ/ece498hk-RISCV-V-Extension/src/vicuna/sim/files.txt",
-//         parameter int unsigned MEM_W           = 32,
-//         parameter int unsigned MEM_SZ          = 262144,
-//         parameter int unsigned MEM_LATENCY     = 1,
-//         parameter int unsigned VMEM_W          = 32,
-//         parameter int unsigned ICACHE_SZ       = 0,   // instruction cache size in bytes
-//         parameter int unsigned ICACHE_LINE_W   = 128, // instruction cache line width in bits
-//         parameter int unsigned DCACHE_SZ       = 0,   // data cache size in bytes
-//         parameter int unsigned DCACHE_LINE_W   = 512  // data cache line width in bits
-//     );
-
-//     // timeunit 100ns;
-//     // timeprecision 1ns; // TODO: are these correct?
-
-//     logic clk, rst;
-
-//     always begin
-//         #1 clk = ~clk;
-//     end
-
-//     default clocking tb_clk @(negedge clk); endclocking
-
-//     initial begin
-//         clk = 0;
-//     end
-    
-//     // Flash storage SPI
-//     logic [3:0] external_qspi_io_i;
-//     logic [3:0] programming_qspi_io_o;
-//     logic [3:0] programming_qspi_io_t;
-//     logic programming_qspi_ck_o;
-//     logic programming_qspi_cs_o;
-
-//     // Outputs
-//     // From Vicuna/Ibex
-//     logic vproc_mem_rvalid_i;
-//     logic vproc_mem_err_i;
-//     logic [32  -1:0] vproc_mem_rdata_i;
-//     logic [3:0] external_qspi_io_o;
-//     logic [3:0] external_qspi_io_t;
-//     logic external_qspi_ck_o;
-//     logic external_qspi_cs_o;
-//     logic [3:0] programming_qspi_io_i;
-
-//     // Inout
-//     // To/from GPIO
-//     wire [9:0] gpio_pins;
-
-//     toplevel_498 toplevel_498(
-//         .clk(clk),
-//         .rst(~rst),
-//         .gpio_pins(gpio_pins),
-
-//         // To/from storage SPI
-//         .external_qspi_io_i(external_qspi_io_i),
-//         .external_qspi_io_o(external_qspi_io_o),
-//         .external_qspi_io_t(external_qspi_io_t),
-//         .external_qspi_ck_o(external_qspi_ck_o),
-//         .external_qspi_cs_o(external_qspi_cs_o),
-
-//         // To/from programming SPI
-//         .programming_qspi_io_i(programming_qspi_io_i),
-//         .programming_qspi_io_o(programming_qspi_io_o),
-//         .programming_qspi_io_t(programming_qspi_io_t),
-//         .programming_qspi_ck_o(programming_qspi_ck_o),
-//         .programming_qspi_cs_o(programming_qspi_cs_o),
-
-//         // Programming/debug set pins
-//         .set_programming_mode(1'b0),
-//         .set_debug_mode(1'b0) // Never used, maybe should add a debug mode
-//     );
-
-//     qspi_stub qspi_stub(
-//         .qspi_io_i(external_qspi_io_i),
-//         .qspi_io_o(external_qspi_io_o),
-//         .qspi_io_t(external_qspi_io_t),
-//         .qspi_ck_o(external_qspi_ck_o),
-//         .qspi_cs_o(external_qspi_cs_o)
-//     );
-
-//     logic prog_end;
-//     assign prog_end = toplevel_498.vproc_mem_req_o & (toplevel_498.vproc_top.mem_addr_o == 32'h0000_0000);
-//     initial begin
-//         rst = 1'b1;
-//         #100
-//         rst = 1'b0;
-
-//         while (1) begin
-//             @(posedge clk);
-//             if(toplevel_498.vproc_mem_rvalid_i) begin
-//                 $display("RVALID HIGH");
-//             end
-//             if(toplevel_498.vproc_mem_err_i) begin
-//                 $display("ERR HIGH");
-//             end
-//             if(toplevel_498.vproc_mem_req_o) begin
-//                 $display("vproc_mem_req_o HIGH");
-//             end
-//             $display("mem_req_o = %h", toplevel_498.vproc_top.mem_req_o);
-//             $display("mem_addr_o = %h", toplevel_498.vproc_top.mem_addr_o);
-//             $display("mem_rvalid_i = %h", toplevel_498.vproc_top.mem_rvalid_i);
-//             $display("mem_err_i = %h", toplevel_498.vproc_top.mem_err_i);
-//             $display("mem_rdata_i = %h", toplevel_498.vproc_top.mem_rdata_i);
-//             $display("vproc_mem_we_o = %h", toplevel_498.vproc_top.mem_we_o);
-//             if (prog_end) begin
-//                 break;
-//             end
-//         end
-//         $finish;
-//     end
-
-//     initial begin
-//         #1000
-//         $finish;
-//     end
-
-// endmodule
-
-
-
-
-
-
 // Copyright TU Wien
 // Licensed under the Solderpad Hardware License v2.1, see LICENSE.txt for details
 // SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
@@ -148,44 +22,39 @@ module vproc_tb #(
     logic clk, rst;
     always begin
         clk = 1'b0;
-        #5;
+        #1;
         clk = 1'b1;
-        #5;
+        #1;
     end
 
+    // to mem
     logic        mem_req;
     logic [31:0] mem_addr;
     logic        mem_we;
     logic [3:0]  mem_be;
     logic [31:0] mem_wdata;
+    // from mem
     logic        mem_rvalid;
     logic        mem_err;
     logic [31:0] mem_rdata;
 
-    // Programming/debug set pins
-    logic set_programming_mode;
-    logic set_debug_mode;
+    logic mmu_rvalid;
+    logic mmu_err;
+    logic [31:0] mmu_rdata;
+
+    logic rvalid_i;
+    logic err_i;
+    logic [31:0]  rdata_i; 
+
+    logic sel_mem = 1;  // 1 == MMU, 0 == memarr
+
+    assign rvalid_i = sel_mem ? mmu_rvalid : mem_rvalid;
+    assign err_i = sel_mem ? mmu_err : mem_err;
+    assign rdata_i = sel_mem ? mmu_rvalid : mem_rvalid;
 
 
-    logic vproc_mem_rvalid_i;
-    logic vproc_mem_err_i;
-    logic [MEM_W-1:0] vproc_mem_rdata_i;
-    logic [31:0] vproc_pend_vreg_wr_map_o;
-    logic set_valid;
-    logic mem_req_tmp;
-    logic [31:0] addr_tmp;
-    logic [31:0] mem_rvalid_tmp;
-    logic valid_tmp;
 
-    logic [31:0] ibex_d_in;
-    logic ibex_d_in_valid;
 
-    logic [31:0] mem_tmp_data_out;
-    logic [31:0] mmu_tmp_data_out;
-    logic [31:0] mmu_data_out;
-    logic mem_tmp_data_out_valid;
-    logic mmu_tmp_data_out_valid;
-    logic send_to_ibex;
 
     vproc_top #(
         .MEM_W         ( MEM_W                       ),
@@ -199,15 +68,15 @@ module vproc_tb #(
     ) top (
         .clk_i         ( clk                         ),
         .rst_ni        ( ~rst                        ),
-        .mem_req_o     ( mem_req_tmp                 ),
-        .mem_addr_o    ( addr_tmp                    ),
+        .mem_req_o     ( mem_req                     ),
+        .mem_addr_o    ( mem_addr                    ),
         .mem_we_o      ( mem_we                      ),
         .mem_be_o      ( mem_be                      ),
         .mem_wdata_o   ( mem_wdata                   ),
-        .mem_rvalid_i  ( mmu_out_valid                ),
-        .mem_err_i     ( vproc_mem_err_i                     ),
-        .mem_rdata_i   ( mmu_data_out                   ),
-        .pend_vreg_wr_map_o (                        )
+        .mem_rvalid_i  ( rvalid_i                    ),
+        .mem_err_i     ( err_i                       ),
+        .mem_rdata_i   ( rdata_i                     ),
+        .pend_vreg_wr_map_o ()
     );
     wire [9:0] gpio_pins;
 
@@ -225,52 +94,48 @@ module vproc_tb #(
     logic                   programming_qspi_ck_o;
     logic                   programming_qspi_cs_o;
 
-
-    
-
-
     mmu #(.MEM_W(MEM_W)) mmu (
         .clk(clk),
         .rst(~rst),
 
         // Set mode inputs
-        .set_programming_mode(set_programming_mode),
-        .set_debug_mode(set_debug_mode),
+        .set_programming_mode   ('0                     ),
+        .set_debug_mode         ('0                     ),
 
         // To/from Vicuna/Ibex
-        .vproc_mem_req_o(mem_req),
-        .vproc_mem_addr_o(mem_addr + 32'h0000_2000),
-        .vproc_mem_we_o(mem_we),
-        .vproc_mem_be_o(mem_be),
-        .vproc_mem_wdata_o(mem_wdata),
-        .vproc_mem_rvalid_i(mmu_out_valid),
-        .vproc_mem_err_i(vproc_mem_err_i),
-        .vproc_mem_rdata_i(mmu_data_out),
+        .vproc_mem_req_o    (mem_req                    ),
+        .vproc_mem_addr_o   (mem_addr + 32'h0000_2000   ),
+        .vproc_mem_we_o     ('0                         ),
+        .vproc_mem_be_o     (mem_be                     ),
+        .vproc_mem_wdata_o  (mem_wdata                  ),
+        .vproc_mem_rvalid_i (mmu_rvalid                 ),
+        .vproc_mem_err_i    (mmu_err                    ),
+        .vproc_mem_rdata_i  (mmu_rdata                  ),
 
         // To/from GPIO
-        .gpio_pins(gpio_pins),
+        .gpio_pins          (gpio_pins                  ),
 
         // To/from storage SPI
-        .external_qspi_io_i(external_qspi_io_i),
-        .external_qspi_io_o(external_qspi_io_o),
-        .external_qspi_io_t(external_qspi_io_t),
-        .external_qspi_ck_o(external_qspi_ck_o),
-        .external_qspi_cs_o(external_qspi_cs_o),
+        .external_qspi_io_i (external_qspi_io_i         ),
+        .external_qspi_io_o (external_qspi_io_o         ),
+        .external_qspi_io_t (external_qspi_io_t         ),
+        .external_qspi_ck_o (external_qspi_ck_o         ),
+        .external_qspi_cs_o (external_qspi_cs_o         ),
 
         // To/from programming SPI
-        .programming_qspi_io_i(programming_qspi_io_i),
-        .programming_qspi_io_o(programming_qspi_io_o),
-        .programming_qspi_io_t(programming_qspi_io_t),
-        .programming_qspi_ck_o(programming_qspi_ck_o),
-        .programming_qspi_cs_o(programming_qspi_cs_o)
+        .programming_qspi_io_i  (programming_qspi_io_i  ),
+        .programming_qspi_io_o  (programming_qspi_io_o  ),
+        .programming_qspi_io_t  (programming_qspi_io_t  ),
+        .programming_qspi_ck_o  (programming_qspi_ck_o  ),
+        .programming_qspi_cs_o  (programming_qspi_cs_o  )
     );
 
     qspi_stub qspi_stub(
-        .qspi_io_i(external_qspi_io_i),
-        .qspi_io_o(external_qspi_io_o),
-        .qspi_io_t(external_qspi_io_t),
-        .qspi_ck_o(external_qspi_ck_o),
-        .qspi_cs_o(external_qspi_cs_o)
+        .qspi_io_i  (external_qspi_io_i                 ),
+        .qspi_io_o  (external_qspi_io_o                 ),
+        .qspi_io_t  (external_qspi_io_t                 ),
+        .qspi_ck_o  (external_qspi_ck_o                 ),
+        .qspi_cs_o  (external_qspi_cs_o                 )
     );
 
     // memory
@@ -310,12 +175,7 @@ module vproc_tb #(
             mem_rdata  <= mem_rdata_queue [MEM_LATENCY-1];
             mem_err    <= mem_err_queue   [MEM_LATENCY-1];
         end
-//        for (int i = 0; i < MEM_SZ; i++) begin
-            // set the don't care values in the memory to 0 during the first rising edge
-//            if ($isunknown(mem[i]) & ($time < 10)) begin
-//                mem[i] <= '0;
-//            end
-//        end
+
 	#5;
     end
 
@@ -325,32 +185,9 @@ module vproc_tb #(
     integer fd1, fd2, cnt, ref_start, ref_end, dump_start, dump_end;
     string  line, prog_path, ref_path, dump_path;
 
-    logic mmu_valid;
-    logic mem_valid;
-    logic [31:0] mmu_val;
-    logic [31:0] mem_val;
-    logic [31:0] prev_addr;
-    logic mem_tmp_data_out_valid;
-
-    // initial begin
-    //     #20000
-    //     $error("Didnt finish after 20000");
-    //     $finish;
-    // end
-
     initial begin
 	$display("STARTING TB");
         done = 1'b0;
-        mmu_valid = 1'b0;
-        mem_valid = 1'b0;
-        prev_addr = 32'b0;
-        set_valid = 1'b0;
-        mem_tmp_data_out_valid = 1'b0;
-        mmu_tmp_data_out_valid = 1'b0;
-        mmu_tmp_data_out = 32'b0;
-        mem_tmp_data_out = 32'b0;
-        ibex_d_in_valid = 1'b0;
-        send_to_ibex = 1'b0;
 
         fd1 = $fopen(PROG_PATHS_LIST, "r");
         for (int i = 0; !$feof(fd1); i++) begin
@@ -376,9 +213,9 @@ module vproc_tb #(
             $display("FINISHED READ MEM");
 
 	    for(int j = 0; j < MEM_SZ; j++) begin
-		if($isunknown(mem[j])) begin
-		    mem[j] = 0;
-		end
+		    if($isunknown(mem[j])) begin
+		        mem[j] = 0;
+		    end
 	    end
 
             fd2 = $fopen(ref_path, "w");
@@ -395,127 +232,51 @@ module vproc_tb #(
             end
             $fclose(fd2);
 	    $display("REF PATH CLOSED");
-
-            // reset for 100 cycles
             #100
             rst = 1'b0;
 
-            // wait for completion (i.e. request of instr mem addr 0x00000000)
-            //@(posedge prog_end);
+        // TODO return here
 	    $display("STARTING WHILE LOOP");
-        // $dumpfile("top.vcd");
-            while (1) begin
-                @(posedge clk);
-                // $dumpvars(0, vproc_tb);
-
-                // if(mem_req_tmp == 1'b1 && mem_req == 1'b0) begin
-                //     $display("setting addr");
-                //     mem_addr = addr_tmp; //- 32'h0000_2000;
-                //     mem_req = 1'b1;
-                //     @(posedge clk)
-                //     mem_req = 1'b0;
-                // end else begin
-                //     // $display("other");
-                //     if(mem_rvalid == 1'b1 && mem_tmp_data_out_valid == 1'b0) begin
-                //         mem_tmp_data_out = mem_rdata;
-                //         $display("INFO: mem_tmp_data_out=%x, mem_rdata=%x, mem_addr=%x", mem_tmp_data_out, mem_rdata, mem_addr);
-
-                //         mem_tmp_data_out_valid = 1'b1;
-                //     end
-
-                //     if(mmu_out_valid == 1'b1) begin
-                //         // @(posedge clk)
-                //         mmu_tmp_data_out = mmu_data_out;
-                //         mmu_tmp_data_out_valid = 1'b1;
-                //         // $display("mmu curr_addr = %x", mmu.curr_addr);
-                //         $display("INFO: mmu_tmp_data_out=%x, mmu_data_out=%x, mem_addr=%x", mmu_tmp_data_out, mmu_data_out, mem_addr);
-
-                //     end
-
-                //     // if(ibex_d_in_valid == 1'b1) begin
-                //     //     @(posedge clk)
-                //     //     mmu_tmp_data_out_valid = 1'b0;
-                //     //     mem_tmp_data_out_valid = 1'b0;
-                //     //     ibex_d_in_valid = 1'b0;
-                //     // end
-
-                //     if(mmu_tmp_data_out_valid == 1'b1 && mem_tmp_data_out_valid == 1'b1) begin
-                //         $display("INFO: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
-                //         assert(mem_tmp_data_out == mmu_tmp_data_out) else $error("ERROR: mem_tmp_data_out=%x, mmu_tmp_data_out=%x, mem_addr=%x", mem_tmp_data_out, mmu_tmp_data_out, mem_addr);
-                //         mmu_tmp_data_out_valid = 1'b0;
-                //         mem_tmp_data_out_valid = 1'b0;
-                //         ibex_d_in = mem_tmp_data_out;
-                //         ibex_d_in_valid = 1'b1;
-                //         @(posedge clk)
-                //         mem_req = 1'b0;
-                //     end
-                // end
-
-                
-
-                if(mem_req_tmp == 1'b1) begin
-                    $display("req_tmp HIGH");
-                    if(mem_we) begin
-                        $display("MEM_WE HIGH");
-                        for (int i = 0; i < MEM_W/8; i++) begin
-                            if (mem_be[i]) begin
-                                mem[mem_idx][i*8 +: 8] <= mem_wdata[i*8 +: 8];
-                            end
+        while (1) begin
+            @(posedge clk);
+            if(mem_req == 1'b1) begin
+                if(mem_we) begin
+                    for (int i = 0; i < MEM_W/8; i++) begin
+                        if (mem_be[i]) begin
+                            mem[mem_idx][i*8 +: 8] <= mem_wdata[i*8 +: 8];
                         end
-                    end else begin
-                        mem_addr = addr_tmp; //- 32'h0000_2000;
-                        mem_req = mem_req_tmp;
-                        // $display("1 mem_rdata=%x", mem_rdata);
-                        @(posedge clk)
-                        // $display("2 mem_rdata=%x", mem_rdata);
-                        // assert(mem_rdata == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mem_rdata=%x, mem[]=%x, mem_idx=%x", mem_addr, mem_rdata, mem[mem_idx], mem_idx);
-                        mem_req = 1'b0;
-                        @(posedge mmu_out_valid)
-                        // $display("3 mem_rdata=%x", mem_rdata);
-                        ibex_d_in_valid = mmu_out_valid;
-                        ibex_d_in = mmu_data_out;
-                        send_to_ibex = 1'b1;
-                        // $display("mmu curr_addr = %x", mmu.curr_addr);
-                        $display("INFO: mmu_data_out=%x, correct_val=%x, mem_addr=%x, idx=%x, time=%p", mmu_data_out, mem[mem_idx], mem_addr, mem_idx, $time);
-
-                        assert(mmu_data_out == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mmu_data_out=%x, mem[]=%x", mem_addr, mmu_data_out, mem[mem_idx]);
-                        @(posedge clk)
-                        // $display("4 mem_rdata=%x", mem_rdata);
-                        send_to_ibex = 1'b0;
                     end
-                end
-
-
-
-                // if(mmu_out_valid == 1'b1) begin
-                // end
-                if (prog_end) begin
-                    break;
+                end 
+                else begin
+                    @(posedge mmu_out_valid);
+                    $display("INFO: mmu_rdata=%x, correct_val=%x, mem_addr=%x, idx=%x, time=%p", mmu_rdata, mem[mem_idx], mem_addr, mem_idx, $time);
+                
+                    assert(mmu_rdata == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mmu_rdata=%x, mem[]=%x", mem_addr, mmu_rdata, mem[mem_idx]);
                 end
             end
+
+            if (prog_end) begin
+                break;
+            end
+        end
 	    $display("OUT OF WHILE LOOP");
 
-            fd2 = $fopen(dump_path, "w");
-            for (int j = dump_start / (MEM_W/8); j < dump_end / (MEM_W/8); j++) begin
-                for (int k = 0; k < MEM_W/32; k++) begin
-                    $fwrite(fd2, "%x\n", mem[j][k*32 +: 32]);
-                end
+        fd2 = $fopen(dump_path, "w");
+        for (int j = dump_start / (MEM_W/8); j < dump_end / (MEM_W/8); j++) begin
+            for (int k = 0; k < MEM_W/32; k++) begin
+                $fwrite(fd2, "%x\n", mem[j][k*32 +: 32]);
             end
-            $fclose(fd2);
         end
-        $fclose(fd1);
-        done = 1'b1;
-	$finish;
+        $fclose(fd2);
     end
+    $fclose(fd1);
+    done = 1'b1;
+    $finish;
+end
+initial begin
+    $dumpfile("top.vcd");
+    $dumpvars(0, vproc_tb);
+end
 
-    initial begin
-        #1
-        $dumpfile("top.vcd");
-        $dumpvars(0, vproc_tb);
 
-        // while(1) begin
-        //     #1
-        // end
-
-    end
 endmodule
