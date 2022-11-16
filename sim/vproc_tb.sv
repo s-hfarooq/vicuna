@@ -28,7 +28,7 @@ module vproc_tb #(
     end
 
     // to mem
-    logic        mem_req, mem_req_curr, mem_req_past;
+    logic        mem_req;
     logic [31:0] mem_addr;
     logic        mem_we;
     logic [3:0]  mem_be;
@@ -53,10 +53,6 @@ module vproc_tb #(
     assign err_i = sel_mem ? mmu_err : mem_err;
     assign rdata_i = sel_mem ? mmu_rdata : mem_rdata;
 
-    always @(posedge clk) begin
-        mem_req_past <= mem_req_curr;
-    end
-
     vproc_top #(
         .MEM_W         ( MEM_W                       ),
         .VMEM_W        ( VMEM_W                      ),
@@ -69,7 +65,7 @@ module vproc_tb #(
     ) top (
         .clk_i         ( clk                         ),
         .rst_ni        ( ~rst                        ),
-        .mem_req_o     ( mem_req_curr                ),
+        .mem_req_o     ( mem_req_cnt_                ),
         .mem_addr_o    ( mem_addr                    ),
         .mem_we_o      ( mem_we                      ),
         .mem_be_o      ( mem_be                      ),
