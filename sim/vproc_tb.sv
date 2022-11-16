@@ -13,9 +13,9 @@ module vproc_tb #(
         parameter int unsigned MEM_SZ          = 262144,
         parameter int unsigned MEM_LATENCY     = 1,
         parameter int unsigned VMEM_W          = 32,
-        parameter int unsigned ICACHE_SZ       = 8192,   // instruction cache size in bytes
+        parameter int unsigned ICACHE_SZ       = 0,   // instruction cache size in bytes
         parameter int unsigned ICACHE_LINE_W   = 128, // instruction cache line width in bits
-        parameter int unsigned DCACHE_SZ       = 65536,   // data cache size in bytes
+        parameter int unsigned DCACHE_SZ       = 0,   // data cache size in bytes
         parameter int unsigned DCACHE_LINE_W   = 512  // data cache line width in bits
     );
 
@@ -50,7 +50,7 @@ module vproc_tb #(
 
     assign rvalid_i = sel_mem ? mmu_rvalid : mem_rvalid;
     assign err_i = sel_mem ? mmu_err : mem_err;
-    assign rdata_i = sel_mem ? mmu_rvalid : mem_rvalid;
+    assign rdata_i = sel_mem ? mmu_rdata : mem_rdata;
 
 
 
@@ -248,7 +248,7 @@ module vproc_tb #(
                     end
                 end 
                 else begin
-                    @(posedge mmu_out_valid);
+                    @(posedge mmu_rvalid);
                     $display("INFO: mmu_rdata=%x, correct_val=%x, mem_addr=%x, idx=%x, time=%p", mmu_rdata, mem[mem_idx], mem_addr, mem_idx, $time);
                 
                     assert(mmu_rdata == mem[mem_idx]) else $error("GOT DIFFERENT VAL (mem_addr=%x, mmu_rdata=%x, mem[]=%x", mem_addr, mmu_rdata, mem[mem_idx]);
@@ -273,9 +273,15 @@ module vproc_tb #(
     done = 1'b1;
     $finish;
 end
+
 initial begin
-    $dumpfile("top.vcd");
+    $dumpfile("top_new.vcd");
     $dumpvars(0, vproc_tb);
+end
+
+initial begin
+    #20000
+    $finish;
 end
 
 
