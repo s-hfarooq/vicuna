@@ -48,7 +48,7 @@ module vproc_tb #(
 
     logic sel_mem = 1;  // 1 == MMU, 0 == memarr
 
-    assign mem_req = mem_req_curr & ~mem_req_past; 
+    // assign mem_req = mem_req_curr; 
     assign rvalid_i = sel_mem ? mmu_rvalid : mem_rvalid;
     assign err_i = sel_mem ? mmu_err : mem_err;
     assign rdata_i = sel_mem ? mmu_rdata : mem_rdata;
@@ -65,7 +65,7 @@ module vproc_tb #(
     ) top (
         .clk_i         ( clk                         ),
         .rst_ni        ( ~rst                        ),
-        .mem_req_o     ( mem_req_cnt_                ),
+        .mem_req_o     ( mem_req                     ),
         .mem_addr_o    ( mem_addr                    ),
         .mem_we_o      ( mem_we                      ),
         .mem_be_o      ( mem_be                      ),
