@@ -30,7 +30,7 @@ module vproc_tb #(
     // to mem
     logic        mem_req;
     logic [31:0] mem_addr_pre, mem_addr;
-    logic        mem_we_pre, mem_wr;
+    logic        mem_we_pre, mem_we;
     logic [3:0]  mem_be_pre, mem_be;
     logic [31:0] mem_wdata_pre, mem_wdata;
     logic        wait_for_rd_complete;
@@ -57,16 +57,20 @@ module vproc_tb #(
         if (rst) begin
             wait_for_rd_complete <= 0;
             mem_addr <= 'x;
-            mem_wr <= 'x;
+            mem_we <= 'x;
             mem_be <= 'x;
             mem_wdata <='x;
         end
         if (rvalid_i and wait_for_rd_complete) begin
             wait_for_rd_complete <= 0;
+            mem_addr <= mem_addr_pre;
+            mem_we <= mem_we_pre;
+            mem_be <= mem_be_pre;
+            mem_wdata <= mem_wdata_pre;
         end
         if (mem_req and ~wait_for_rd_complete) begin
             mem_addr <= mem_addr_pre;
-            mem_wr <= mem_wr_pre;
+            mem_we <= mem_we_pre;
             mem_be <= mem_be_pre;
             mem_wdata <= mem_wdata_pre;
             wait_for_rd_complete <= '1;
