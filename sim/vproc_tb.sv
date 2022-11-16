@@ -61,14 +61,14 @@ module vproc_tb #(
             mem_be <= 'x;
             mem_wdata <='x;
         end
-        if (rvalid_i and wait_for_rd_complete) begin
+        if (rvalid_i && wait_for_rd_complete) begin
             wait_for_rd_complete <= 0;
             mem_addr <= mem_addr_pre;
             mem_we <= mem_we_pre;
             mem_be <= mem_be_pre;
             mem_wdata <= mem_wdata_pre;
         end
-        if (mem_req and ~wait_for_rd_complete) begin
+        if (mem_req && ~wait_for_rd_complete) begin
             mem_addr <= mem_addr_pre;
             mem_we <= mem_we_pre;
             mem_be <= mem_be_pre;
