@@ -28,12 +28,11 @@ module vproc_tb #(
     end
 
     // to mem
-    logic        mem_req;
-    logic [31:0] mem_addr_pre, mem_addr;
-    logic        mem_we_pre, mem_we;
-    logic [3:0]  mem_be_pre, mem_be;
-    logic [31:0] mem_wdata_pre, mem_wdata;
-    logic        wait_for_rd_complete;
+    logic        mem_req, mem_req_curr, mem_req_past;
+    logic [31:0] mem_addr;
+    logic        mem_we;
+    logic [3:0]  mem_be;
+    logic [31:0] mem_wdata;
     // from mem
     logic        mem_rvalid;
     logic        mem_err;
@@ -49,34 +48,15 @@ module vproc_tb #(
 
     logic sel_mem = 1;  // 1 == MMU, 0 == memarr
 
+    assign mem_req = mem_req_curr & ~mem_req_past; 
     assign rvalid_i = sel_mem ? mmu_rvalid : mem_rvalid;
     assign err_i = sel_mem ? mmu_err : mem_err;
     assign rdata_i = sel_mem ? mmu_rdata : mem_rdata;
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            wait_for_rd_complete <= 0;
-            mem_addr <= 'x;
-            mem_we <= 'x;
-            mem_be <= 'x;
-            mem_wdata <='x;
-        end
-        if (rvalid_i && wait_for_rd_complete) begin
-            wait_for_rd_complete <= 0;
-            mem_addr <= mem_addr_pre;
-            mem_we <= mem_we_pre;
-            mem_be <= mem_be_pre;
-            mem_wdata <= mem_wdata_pre;
-        end
-        if (mem_req && ~wait_for_rd_complete) begin
-            mem_addr <= mem_addr_pre;
-            mem_we <= mem_we_pre;
-            mem_be <= mem_be_pre;
-            mem_wdata <= mem_wdata_pre;
-            wait_for_rd_complete <= '1;
-        end
+    always @(posedge clk) begin
+        mem_req_past <= mem_req_curr;
     end
-    
+
     vproc_top #(
         .MEM_W         ( MEM_W                       ),
         .VMEM_W        ( VMEM_W                      ),
@@ -89,11 +69,11 @@ module vproc_tb #(
     ) top (
         .clk_i         ( clk                         ),
         .rst_ni        ( ~rst                        ),
-        .mem_req_o     ( mem_req                     ),
-        .mem_addr_o    ( mem_addr_pre                    ),
-        .mem_we_o      ( mem_we_pre                      ),
-        .mem_be_o      ( mem_be_pre                      ),
-        .mem_wdata_o   ( mem_wdata_pre                   ),
+        .mem_req_o     ( mem_req_curr                ),
+        .mem_addr_o    ( mem_addr                    ),
+        .mem_we_o      ( mem_we                      ),
+        .mem_be_o      ( mem_be                      ),
+        .mem_wdata_o   ( mem_wdata                   ),
         .mem_rvalid_i  ( rvalid_i                    ),
         .mem_err_i     ( err_i                       ),
         .mem_rdata_i   ( rdata_i                     ),
