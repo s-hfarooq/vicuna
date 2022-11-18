@@ -325,6 +325,7 @@ typedef struct packed {
 // source register type:
 typedef struct packed {
     logic vreg;
+    logic xreg;
 `ifdef VPROC_OP_REGS_UNION
     union {
 `else
