@@ -82,7 +82,7 @@ module vproc_pipeline_wrapper import vproc_pkg::*; #(
 `ifdef VERILATOR
     // Workaround for Verilator due to https://github.com/verilator/verilator/issues/3433
     typedef int unsigned VERILATOR_ARRAY_SLICE_T[VPORT_CNT];
-    function static VERILATOR_ARRAY_SLICE_T VERILATOR_ARRAY_SLICE(int unsigned SRC[VPORT_CNT]);
+    function VERILATOR_ARRAY_SLICE_T VERILATOR_ARRAY_SLICE(int unsigned SRC[VPORT_CNT]);
         for (int i = 0; i < VPORT_CNT; i++) begin
             VERILATOR_ARRAY_SLICE[i] = SRC[VPORT_OFFSET + i];
         end

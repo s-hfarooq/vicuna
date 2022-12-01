@@ -129,21 +129,21 @@ module vproc_core import vproc_pkg::*; #(
 
     typedef int unsigned ASSIGN_VADDR_RD_W_RET_T[VPORT_RD_CNT];
     typedef int unsigned ASSIGN_VADDR_WR_W_RET_T[VPORT_WR_CNT];
-    function static ASSIGN_VADDR_RD_W_RET_T ASSIGN_VADDR_RD_W();
+    function ASSIGN_VADDR_RD_W_RET_T ASSIGN_VADDR_RD_W();
         for (int i = 0; i < VPORT_RD_CNT; i++) begin
             ASSIGN_VADDR_RD_W[i] = 5 + $clog2(VREG_W / VPORT_RD_W[i]);
         end
     endfunction
-    function static ASSIGN_VADDR_WR_W_RET_T ASSIGN_VADDR_WR_W();
+    function ASSIGN_VADDR_WR_W_RET_T ASSIGN_VADDR_WR_W();
         for (int i = 0; i < VPORT_WR_CNT; i++) begin
             ASSIGN_VADDR_WR_W[i] = 5 + $clog2(VREG_W / VPORT_WR_W[i]);
         end
     endfunction
 
-    localparam int unsigned VADDR_RD_W[VPORT_RD_CNT] = ASSIGN_VADDR_RD_W();
-    localparam int unsigned VADDR_WR_W[VPORT_WR_CNT] = ASSIGN_VADDR_WR_W();
+    localparam ASSIGN_VADDR_RD_W_RET_T VADDR_RD_W = ASSIGN_VADDR_RD_W();
+    localparam ASSIGN_VADDR_WR_W_RET_T VADDR_WR_W = ASSIGN_VADDR_WR_W();
 
-    function static int unsigned MAX_VPORT_RD_SLICE(
+    function int unsigned MAX_VPORT_RD_SLICE(
         int unsigned SRC[VPORT_RD_CNT], int unsigned OFFSET, int unsigned CNT
     );
         MAX_VPORT_RD_SLICE = 0;
@@ -153,7 +153,7 @@ module vproc_core import vproc_pkg::*; #(
             end
         end
     endfunction
-    function static int unsigned MAX_VPORT_WR_SLICE(
+    function int unsigned MAX_VPORT_WR_SLICE(
         int unsigned SRC[VPORT_WR_CNT], int unsigned OFFSET, int unsigned CNT
     );
         MAX_VPORT_WR_SLICE = 0;
@@ -918,8 +918,8 @@ module vproc_core import vproc_pkg::*; #(
         for (genvar i = 0; i < PIPE_CNT; i++) begin
 `ifndef VERILATOR
             // Currently not possible in Verilator due to https://github.com/verilator/verilator/issues/3433
-            localparam int unsigned PIPE_VPORT_W[PIPE_VPORT_CNT[i]]  = VPORT_RD_W[PIPE_VPORT_IDX[i] +: PIPE_VPORT_CNT[i]];
-            localparam int unsigned PIPE_VADDR_W[PIPE_VPORT_CNT[i]]  = VADDR_RD_W[PIPE_VPORT_IDX[i] +: PIPE_VPORT_CNT[i]];
+            localparam int unsigned PIPE_VPORT_W[PIPE_VPORT_CNT[i]]  = VPORT_RD_W[PIPE_VPORT_CNT[i] : PIPE_VPORT_IDX[i] + PIPE_VPORT_CNT[i] -1];
+            localparam int unsigned PIPE_VADDR_W[PIPE_VPORT_CNT[i]]  = VADDR_RD_W[PIPE_VPORT_CNT[i] : PIPE_VPORT_IDX[i] + PIPE_VPORT_CNT[i] -1];
 `endif
             localparam int unsigned PIPE_MAX_VPORT_W = MAX_VPORT_RD_SLICE(VPORT_RD_W, PIPE_VPORT_IDX[i], PIPE_VPORT_CNT[i]);
             localparam int unsigned PIPE_MAX_VADDR_W = MAX_VPORT_RD_SLICE(VADDR_RD_W, PIPE_VPORT_IDX[i], PIPE_VPORT_CNT[i]);

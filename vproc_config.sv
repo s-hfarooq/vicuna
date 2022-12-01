@@ -17,6 +17,7 @@
 //     Uses 1 128-bit vreg read ports and write port 0
 // - Vector register file needs 2 read ports and 1 write ports
 `define MAIN_CORE_IBEX
+// `define VERILATOR
 
 package vproc_config;
 
