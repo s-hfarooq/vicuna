@@ -130,11 +130,12 @@ module vproc_top import vproc_pkg::*; #(
         .ram_cfg_i              ( prim_ram_1p_pkg::ram_1p_cfg_t'('0) ),
 
         .hart_id_i              ( 32'b0                              ),
-        `ifdef 498_DESIGN
-        .boot_addr_i            ( 32'h0000_2000                      ), // need x2000 offset for our MMU
-        `else
-        .boot_addr_i            ( 32'h0000_0000                      ),
-        `endif
+        .boot_addr_i            ( `ifdef 498_DESIGN // need x2000 offset for our MMU
+                                    32'h0000_2000
+                                  `else
+                                    32'h0000_0000
+                                  `endif
+                                                                     ),
 
         .instr_req_o            ( instr_req                          ),
         .instr_gnt_i            ( instr_gnt                          ),
