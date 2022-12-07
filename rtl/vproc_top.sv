@@ -8,9 +8,9 @@ module vproc_top import vproc_pkg::*; #(
         parameter int unsigned     VMEM_W        = 32,  // vector memory interface width in bits
         parameter vreg_type        VREG_TYPE     = VREG_GENERIC,
         parameter mul_type         MUL_TYPE      = MUL_GENERIC,
-        parameter int unsigned     ICACHE_SZ     = 0,   // instruction cache size in bytes
+        parameter int unsigned     ICACHE_SZ     = 2048,   // instruction cache size in bytes
         parameter int unsigned     ICACHE_LINE_W = 128, // instruction cache line width in bits
-        parameter int unsigned     DCACHE_SZ     = 0,   // data cache size in bytes
+        parameter int unsigned     DCACHE_SZ     = 8192,   // data cache size in bytes
         parameter int unsigned     DCACHE_LINE_W = 512  // data cache line width in bits
     )(
         input  logic               clk_i,
@@ -130,7 +130,11 @@ module vproc_top import vproc_pkg::*; #(
         .ram_cfg_i              ( prim_ram_1p_pkg::ram_1p_cfg_t'('0) ),
 
         .hart_id_i              ( 32'b0                              ),
-        .boot_addr_i            ( 32'h00000000                       ),
+        `ifdef 498_DESIGN
+        .boot_addr_i            ( 32'h0000_2000                      ), // need x2000 offset for our MMU
+        `else
+        .boot_addr_i            ( 32'h0000_0000                      ),
+        `endif
 
         .instr_req_o            ( instr_req                          ),
         .instr_gnt_i            ( instr_gnt                          ),

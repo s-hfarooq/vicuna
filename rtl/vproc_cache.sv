@@ -175,7 +175,7 @@ module vproc_cache #(
     logic                     cache_hit, cache_miss, cache_spill;
     logic [TAG_BIT_W-1:0]     spill_tag;
     logic [LINE_BYTE_W*8-1:0] spill_line;
-    assign cache_hit   = check_tag_q & (tag_match_way0 | tag_match_way1);
+    assign cache_hit   = check_tag_q & (tag_match_way0 | tag_match_way1) & (cpu_addr_q.addr >= 32'h0000_1000); // TODO: and addr not < x1000?
     assign cache_miss  = check_tag_q & ~tag_match_way0 & ~tag_match_way1;
     assign cache_spill = cache_miss & (lru_q[cpu_addr_q.part.index] ? way1_rdirty : way0_rdirty);
     assign spill_tag   = lru_q[cpu_addr_q.part.index] ? way1_rtag   : way0_rtag;
@@ -278,14 +278,14 @@ module vproc_cache #(
     // Cache way interface signals
     assign way_rindex     = mem_data_cnt_q.part.done ? cpu_addr.part.index : cpu_addr_q.part.index;
     assign way_windex     = cpu_addr_q.part.index;
-    assign way0_we        = mem_data_cnt_q.part.done ? (check_tag_q & tag_match_way0 & cpu_we_q) : ~lru_q[cpu_addr_q.part.index];
-    assign way1_we        = mem_data_cnt_q.part.done ? (check_tag_q & tag_match_way1 & cpu_we_q) :  lru_q[cpu_addr_q.part.index];
+    assign way0_we        = mem_data_cnt_q.part.done ? (check_tag_q & tag_match_way0 & cpu_we_q & (cpu_addr_q.addr >= 32'h0000_1000)) : ~lru_q[cpu_addr_q.part.index]; // TODO: & (addr >= x1000) ?
+    assign way1_we        = mem_data_cnt_q.part.done ? (check_tag_q & tag_match_way1 & cpu_we_q & (cpu_addr_q.addr >= 32'h0000_1000)) :  lru_q[cpu_addr_q.part.index]; // TODO: & (addr >= x1000) ?
     assign way_wtag       = cpu_addr_q.part.tag;
     assign way_wline_be   = mem_data_cnt_q.part.done ?
                             {{(LINE_BYTE_W - CPU_BYTE_W){1'b0}}, cpu_wbe_q         } << cpu_addr_offset :
                             {{(LINE_BYTE_W - MEM_BYTE_W){1'b0}}, {MEM_BYTE_W{1'b1}}} << (MEM_BYTE_W * mem_data_cnt_q.part.cnt);
     assign way_wline_data = mem_data_cnt_q.part.done ? {(LINE_BYTE_W / CPU_BYTE_W){cpu_wdata_q}} : {(LINE_BYTE_W / MEM_BYTE_W){mem_rdata_i}};
-    assign way_wdirty     = mem_data_cnt_q.part.done & cpu_we_q;
+    assign way_wdirty     = mem_data_cnt_q.part.done & cpu_we_q & (cpu_addr_q.addr >= 32'h0000_1000); // TODO: & (addr >= x1000) ?
     assign way_werr       = ~mem_data_cnt_q.part.done & mem_err_i;
 
     // CPU interface signals
