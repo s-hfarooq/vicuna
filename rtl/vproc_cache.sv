@@ -167,8 +167,8 @@ module vproc_cache #(
     logic                     tag_match_way0, tag_match_way1;
     logic [LINE_BYTE_W*8-1:0] tag_match_line;
     logic                     tag_match_err;
-    assign tag_match_way0 = way0_valid_q[cpu_addr_q.part.index] & (way0_rtag == cpu_addr_q.part.tag);
-    assign tag_match_way1 = way1_valid_q[cpu_addr_q.part.index] & (way1_rtag == cpu_addr_q.part.tag);
+    assign tag_match_way0 = way0_valid_q[cpu_addr_q.part.index] & (way0_rtag == cpu_addr_q.part.tag) & (cpu_addr_q.addr >= 32'h0000_1000); // TODO
+    assign tag_match_way1 = way1_valid_q[cpu_addr_q.part.index] & (way1_rtag == cpu_addr_q.part.tag) & (cpu_addr_q.addr >= 32'h0000_1000); // TODO
     assign tag_match_line = tag_match_way0 ? way0_rline : way1_rline;
     assign tag_match_err  = tag_match_way0 ? way0_rerr  : way1_rerr;
 
