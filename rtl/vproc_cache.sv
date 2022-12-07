@@ -175,8 +175,8 @@ module vproc_cache #(
     logic                     cache_hit, cache_miss, cache_spill;
     logic [TAG_BIT_W-1:0]     spill_tag;
     logic [LINE_BYTE_W*8-1:0] spill_line;
-    assign cache_hit   = check_tag_q & (tag_match_way0 | tag_match_way1);// & (cpu_addr_q.addr >= 32'h0000_1000); // TODO: and addr not < x1000?
-    assign cache_miss  = check_tag_q & ~tag_match_way0 & ~tag_match_way1;
+    assign cache_hit   = check_tag_q & (tag_match_way0 | tag_match_way1) & (cpu_addr_q.addr >= 32'h0000_1000); // TODO: and addr not < x1000?
+    assign cache_miss  = (check_tag_q & ~tag_match_way0 & ~tag_match_way1) | (cpu_addr_q.addr < 32'h0000_1000); // TODO: and addr < x1000?
     assign cache_spill = cache_miss & (lru_q[cpu_addr_q.part.index] ? way1_rdirty : way0_rdirty);
     assign spill_tag   = lru_q[cpu_addr_q.part.index] ? way1_rtag   : way0_rtag;
     assign spill_line  = lru_q[cpu_addr_q.part.index] ? way1_rline  : way0_rline;
