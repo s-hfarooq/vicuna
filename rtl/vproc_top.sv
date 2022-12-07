@@ -130,8 +130,8 @@ module vproc_top import vproc_pkg::*; #(
         .ram_cfg_i              ( prim_ram_1p_pkg::ram_1p_cfg_t'('0) ),
 
         .hart_id_i              ( 32'b0                              ),
-        
-`ifdef 498_DESIGN
+
+`ifdef ECE498_DESIGN
         .boot_addr_i            ( 32'h0000_2000                      ),
 `else
         .boot_addr_i            ( 32'h0000_0000                      ),
