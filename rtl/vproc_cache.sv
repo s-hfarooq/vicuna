@@ -89,6 +89,7 @@ module vproc_cache #(
         .LINE_BYTE_W  ( LINE_BYTE_W    )
     ) way0 (
         .clk_i        ( clk_i          ),
+        .rst_ni(rst_ni),
         .windex_i     ( way_windex     ),
         .we_i         ( way0_we        ),
         .wtag_i       ( way_wtag       ),
@@ -109,6 +110,7 @@ module vproc_cache #(
         .LINE_BYTE_W  ( LINE_BYTE_W    )
     ) way1 (
         .clk_i        ( clk_i          ),
+        .rst_ni(rst_ni),
         .windex_i     ( way_windex     ),
         .we_i         ( way1_we        ),
         .wtag_i       ( way_wtag       ),
@@ -309,6 +311,7 @@ module vproc_cache_way #(
         parameter int unsigned LINE_BYTE_W = 16
     )(
         input  logic                     clk_i,
+        input logic rst_ni,
 
         input  logic [INDEX_BIT_W-1:0]   windex_i,
         input  logic                     we_i,
@@ -329,36 +332,41 @@ module vproc_cache_way #(
 
     logic [TAG_BIT_W-1:0]     tags[WAY_LEN]  = '{default: '1};
     logic [LINE_BYTE_W*8-1:0] lines[WAY_LEN] = '{default: 128'h00112233445566778899AABBCCDDEEFF};
-    logic [WAY_LEN-1:0]       dirty          = '0;
-    logic [WAY_LEN-1:0]       err            = '0;
+    logic [WAY_LEN-1:0]       dirty;//         = '0;
+    logic [WAY_LEN-1:0]       err;//            = '0;
 
     always_ff @(posedge clk_i) begin
-        rtag_o   <= tags [rindex_i];
-        rline_o  <= lines[rindex_i];
-        rdirty_o <= dirty[rindex_i];
-        rerr_o   <= err  [rindex_i];
+        if(~rst_ni) begin
+            dirty <= '0;
+            err <= '0;
+        end else begin
+            rtag_o   <= tags [rindex_i];
+            rline_o  <= lines[rindex_i];
+            rdirty_o <= dirty[rindex_i];
+            rerr_o   <= err  [rindex_i];
 
-        if (we_i) begin
-            tags [windex_i] <= wtag_i;
-            dirty[windex_i] <= wdirty_i;
-            err  [windex_i] <= werr_i;
+            if (we_i) begin
+                tags [windex_i] <= wtag_i;
+                dirty[windex_i] <= wdirty_i;
+                err  [windex_i] <= werr_i;
 
-            if (rindex_i == windex_i) begin
-                rtag_o   <= wtag_i;
-                rdirty_o <= wdirty_i;
-                rerr_o   <= werr_i;
-            end
+                if (rindex_i == windex_i) begin
+                    rtag_o   <= wtag_i;
+                    rdirty_o <= wdirty_i;
+                    rerr_o   <= werr_i;
+                end
 
-            for (int i = 0; i < LINE_BYTE_W; i++) begin
-                if (wline_be_i[i]) begin
-                    lines[windex_i][8*i +: 8] <= wline_data_i[8*i +: 8];
+                for (int i = 0; i < LINE_BYTE_W; i++) begin
+                    if (wline_be_i[i]) begin
+                        lines[windex_i][8*i +: 8] <= wline_data_i[8*i +: 8];
 
-                    if (rindex_i == windex_i) begin
-                        rline_o[8*i +: 8] <= wline_data_i[8*i +: 8];
+                        if (rindex_i == windex_i) begin
+                            rline_o[8*i +: 8] <= wline_data_i[8*i +: 8];
+                        end
                     end
                 end
-            end
 
+            end
         end
     end
 
